@@ -1,11 +1,11 @@
 import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
+import { routes } from './app.routes';
 
-// Make sure 'export' is at the start of the line!
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(route),
+    provideRouter(routes),
     provideHttpClient()
   ]
 };
