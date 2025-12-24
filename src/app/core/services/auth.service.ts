@@ -7,11 +7,10 @@ export class AuthService {
     private router = inject(Router);
     private platformId = inject(PLATFORM_ID);
 
-    // This Signal updates the name in your dashboard header instantly
+    // Signal to store the user name and role for the dashboard header
     currentUser = signal<any>(null);
 
     constructor() {
-        // Check if running in browser to avoid localStorage errors in Node/Vite
         if (isPlatformBrowser(this.platformId)) {
             const savedUser = localStorage.getItem('user_session');
             if (savedUser) {
@@ -20,21 +19,17 @@ export class AuthService {
         }
     }
 
-    // FIX: Explicitly defined register method to resolve TS2339
+    // Resolves TS2339: Property 'register' does not exist
     register(userData: any) {
         if (isPlatformBrowser(this.platformId)) {
             const users = JSON.parse(localStorage.getItem('users') || '[]');
-
-            // Add new user to the local storage 'database'
             users.push(userData);
             localStorage.setItem('users', JSON.stringify(users));
 
-            // Auto-login: Set the signal so the Dashboard shows their name immediately
+            // Auto-login after registration
             this.currentUser.set(userData);
             localStorage.setItem('user_session', JSON.stringify(userData));
-
-            // Navigate to dashboard after registration
-            this.router.navigate(['/admin/dashboard']);
+            this.navigateToDashboard(userData.role);
         }
     }
 
@@ -46,11 +41,17 @@ export class AuthService {
             if (foundUser) {
                 this.currentUser.set(foundUser);
                 localStorage.setItem('user_session', JSON.stringify(foundUser));
-                this.router.navigate(['/admin/dashboard']);
+                this.navigateToDashboard(foundUser.role);
                 return true;
             }
         }
         return false;
+    }
+
+    private navigateToDashboard(role: string) {
+        // Moves to /admin/dashboard, /manager/dashboard, etc.
+        const route = role.toLowerCase();
+        this.router.navigate([`/${route}/dashboard`]);
     }
 
     logout() {
@@ -58,6 +59,6 @@ export class AuthService {
         if (isPlatformBrowser(this.platformId)) {
             localStorage.removeItem('user_session');
         }
-        this.router.navigate(['/login']);
+        this.router.navigate(['/landing']);
     }
 }

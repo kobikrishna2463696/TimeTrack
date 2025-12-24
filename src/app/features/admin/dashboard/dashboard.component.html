@@ -1,59 +1,68 @@
-<div class="admin-container">
-    <header class="dashboard-header">
+<div class="dashboard-wrapper">
+    <header class="main-header">
         <div class="brand">
-            <div class="logo-box">🕒</div>
-            <div class="brand-text">
+            <div class="logo-container">🕒</div>
+            <div class="brand-info">
                 <h1>TimeTrack</h1>
                 <p>Admin Dashboard</p>
             </div>
         </div>
-        <div class="user-profile">
-            <div class="user-info">
-                <strong class="user-name">{{ userProfile()?.name || 'Michael Brown' }}</strong>
-                <span class="user-dept">{{ userProfile()?.department || 'IT' }}</span>
+        <div class="profile-area">
+            <div class="profile-text">
+                <span class="p-name">Harsh</span>
+                <span class="p-dept">IT</span>
             </div>
-            <button class="logout-btn" (click)="logout()">Logout</button>
+            <button class="logout-link" (click)="logout()">📤 Logout</button>
         </div>
     </header>
 
-    <div class="stats-grid">
+    <div class="stats-container">
         <div class="stat-card">
-            <div class="stat-info">
-                <p>Total Users</p>
-                <h2>{{ usersList().length }}</h2>
+            <div class="card-content">
+                <label>Total Users</label>
+                <h2>{{ totalUsers() }}</h2>
             </div>
-            <div class="stat-icon blue">👥</div>
+            <div class="card-icon purple-bg">👥</div>
         </div>
         <div class="stat-card">
-            <div class="stat-info">
-                <p>Active Users</p>
-                <h2>{{ usersList().length }}</h2>
+            <div class="card-content">
+                <label>Active Users</label>
+                <h2>{{ activeUsers() }}</h2>
             </div>
-            <div class="stat-icon green">👤</div>
+            <div class="card-icon green-bg">👤</div>
         </div>
         <div class="stat-card">
-            <div class="stat-info">
-                <p>Total Hours Logged</p>
-                <h2>39</h2>
+            <div class="card-content">
+                <label>Total Hours Logged</label>
+                <h2>{{ hoursLogged() }}</h2>
             </div>
-            <div class="stat-icon purple">📊</div>
+            <div class="card-icon indigo-bg">📊</div>
         </div>
         <div class="stat-card">
-            <div class="stat-info">
-                <p>Total Tasks</p>
-                <h2>5</h2>
+            <div class="card-content">
+                <label>Total Tasks</label>
+                <h2>{{ totalTasks() }}</h2>
             </div>
-            <div class="stat-icon orange">📈</div>
+            <div class="card-icon orange-bg">📈</div>
         </div>
     </div>
 
-    <div class="management-box">
-        <div class="table-header">
-            <h2>User Management</h2>
-            <button class="add-btn" (click)="toggleModal()">+ Add User</button>
-        </div>
+    <nav class="sub-nav">
+        <button class="nav-item" [class.active]="currentTab() === 'User Management'"
+            (click)="currentTab.set('User Management')">User Management</button>
+        <button class="nav-item" [class.active]="currentTab() === 'Organization Analytics'"
+            (click)="currentTab.set('Organization Analytics')">Organization Analytics</button>
+        <button class="nav-item" [class.active]="currentTab() === 'System Configuration'"
+            (click)="currentTab.set('System Configuration')">System Configuration</button>
+    </nav>
 
-        <table class="user-table">
+    @if (currentTab() === 'User Management') {
+    <section class="management-section card-style">
+        <div class="section-header">
+            <h2>User Management</h2>
+            <button class="add-user-btn" (click)="showModal.set(true)">+ Add User</button>
+        </div>
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -67,36 +76,213 @@
             <tbody>
                 @for (user of usersList(); track user.email) {
                 <tr>
-                    <td>{{ user.name }}</td>
+                    <td class="bold-text">{{ user.name }}</td>
                     <td>{{ user.email }}</td>
                     <td>{{ user.role }}</td>
                     <td>{{ user.department }}</td>
-                    <td><span class="badge active">{{ user.status }}</span></td>
-                    <td>✏️ 🗑️</td>
+                    <td><span class="status-pill active">{{ user.status }}</span></td>
+                    <td class="action-icons">✏️ 🗑️</td>
                 </tr>
                 }
             </tbody>
         </table>
-    </div>
+    </section>
+    }
 
-    @if (isModalOpen()) {
+    @if (currentTab() === 'Organization Analytics') {
+    <div class="analytics-view">
+        <div class="stats-container secondary-stats">
+            <div class="stat-card">
+                <div class="card-content"><label>Total Hours</label>
+                    <h2>39 hrs</h2><span class="trend green">Organization-wide</span>
+                </div>
+                <div class="card-icon indigo-bg">🕒</div>
+            </div>
+            <div class="stat-card">
+                <div class="card-content"><label>Avg Hours/Employee</label>
+                    <h2>9.8 hrs</h2><span class="trend green">↑ Per employee</span>
+                </div>
+                <div class="card-icon green-bg">📈</div>
+            </div>
+            <div class="stat-card">
+                <div class="card-content"><label>Task Completion</label>
+                    <h2>20%</h2><span class="trend">1 of 5</span>
+                </div>
+                <div class="card-icon purple-bg">🏢</div>
+            </div>
+            <div class="stat-card">
+                <div class="card-content"><label>Active Employees</label>
+                    <h2>4</h2><span class="trend">Currently active</span>
+                </div>
+                <div class="card-icon orange-bg">👥</div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card large">
+                <h3>Organization Hours Trend (Last 7 Days)</h3>
+                <div class="canvas-wrapper"><canvas id="hoursTrendChart"></canvas></div>
+            </div>
+            <div class="chart-card small">
+                <h3>User Role Distribution</h3>
+                <div class="canvas-wrapper"><canvas id="roleDistChart"></canvas></div>
+                <div class="custom-legend">
+                    @for (item of roleDistribution; track item.label) {
+                    <div class="legend-item"><span class="dot" [style.background]="item.color"></span> {{ item.label }}:
+                        {{ item.count }}</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <section class="performance-section card-style">
+            <h3>Department Performance Details</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Employees</th>
+                        <th>Total Hours</th>
+                        <th>Completed Tasks</th>
+                        <th>Avg Hours/Employee</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (dept of departmentPerformance; track dept.name) {
+                    <tr>
+                        <td class="bold-text">{{ dept.name }}</td>
+                        <td>{{ dept.employees }}</td>
+                        <td>{{ dept.totalHours }} hrs</td>
+                        <td>{{ dept.tasks }}</td>
+                        <td>{{ dept.avg }} hrs</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+
+        <section class="insights-section card-style">
+            <h3>Key Organizational Insights</h3>
+            <div class="insights-list">
+                @for (insight of organizationalInsights; track insight.title) {
+                <div class="insight-item" [ngClass]="insight.color">
+                    <div class="insight-icon">{{ insight.icon }}</div>
+                    <div class="insight-content">
+                        <h4>{{ insight.title }}</h4>
+                        <p>{{ insight.desc }}</p>
+                    </div>
+                </div>
+                }
+            </div>
+        </section>
+    </div>
+    }
+
+    @if (currentTab() === 'System Configuration') {
+    <div class="config-view">
+        <section class="card-style">
+            <div class="section-header">
+                <div class="header-text">
+                    <h3>Work Categories</h3>
+                    <p class="sub-text">Configure work categories for time tracking and task classification</p>
+                </div>
+                <button class="add-user-btn" (click)="showModal.set(true)">+ Add Category</button>
+            </div>
+
+            <div class="categories-grid">
+                @for (cat of workCategories(); track cat.name) {
+                <div class="category-card">
+                    <div class="cat-info">
+                        <div class="color-box" [style.background-color]="cat.color"></div>
+                        <div class="cat-details">
+                            <h4>{{ cat.name }}</h4>
+                            <code>{{ cat.code }}</code>
+                        </div>
+                    </div>
+                    <span class="status-pill active">{{ cat.status }}</span>
+                </div>
+                }
+            </div>
+        </section>
+
+        <section class="card-style">
+            <div class="header-text">
+                <h3>System Settings</h3>
+                <p class="sub-text">Configure global system parameters for time tracking</p>
+            </div>
+
+            <div class="settings-grid">
+                <div class="settings-group">
+                    <h4><span>📅</span> Time Logging Rules</h4>
+                    <div class="input-field">
+                        <label>Overtime Threshold (hours/week)</label>
+                        <input type="number" value="40">
+                    </div>
+                    <div class="input-field">
+                        <label>Minimum Break Duration (minutes)</label>
+                        <input type="number" value="30">
+                    </div>
+                    <div class="input-field">
+                        <label>Minimum Log Duration (minutes)</label>
+                        <input type="number" value="15">
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h4><span>🛡️</span> Security Settings</h4>
+                    <div class="input-field">
+                        <label>Auto Logout (minutes of inactivity)</label>
+                        <input type="number" value="60">
+                    </div>
+                </div>
+            </div>
+
+            <button class="save-settings-btn">💾 Save Settings</button>
+
+            <div class="notes-box">
+                <div class="notes-icon">ℹ️</div>
+                <div class="notes-content">
+                    <h4>Configuration Notes</h4>
+                    <ul>
+                        <li>Work categories are used to classify tasks and time entries</li>
+                        <li>System settings apply to all users across the organization</li>
+                        <li>Changes to working hours affect productivity calculations</li>
+                        <li>Overtime threshold helps identify employees working beyond standard hours</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+    }
+
+    @if (showModal()) {
     <div class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-card">
             <h3>Add New User</h3>
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" [(ngModel)]="newUser.name" placeholder="Enter name">
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" [(ngModel)]="newUser.email" placeholder="Enter email">
-            </div>
-            <div class="form-group">
-                <label>Department</label>
-                <input type="text" [(ngModel)]="newUser.department" placeholder="Enter department">
+            <div class="modal-form">
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" placeholder="e.g. Harsh" [(ngModel)]="newUser.name">
+                </div>
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" placeholder="e.g. harsh@example.com" [(ngModel)]="newUser.email">
+                </div>
+                <div class="input-group">
+                    <label>Department</label>
+                    <input type="text" placeholder="e.g. IT" [(ngModel)]="newUser.department">
+                </div>
+                <div class="input-group">
+                    <label>Role</label>
+                    <select [(ngModel)]="newUser.role">
+                        <option value="Employee">Employee</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
             </div>
             <div class="modal-actions">
-                <button class="cancel-btn" (click)="toggleModal()">Cancel</button>
+                <button class="cancel-btn" (click)="showModal.set(false)">Cancel</button>
                 <button class="save-btn" (click)="saveUser()">Save User</button>
             </div>
         </div>
