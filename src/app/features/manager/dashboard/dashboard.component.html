@@ -1,1 +1,159 @@
-<p>dashboard works!</p>
+<div class="dashboard-wrapper">
+    <header class="navbar-modern">
+        <div class="nav-left">
+            <div class="logo-circle">🕒</div>
+            <div class="brand-info">
+                <h1 class="brand-name">TimeTrack</h1>
+                <span class="brand-tag">{{ user()?.role | titlecase }} Dashboard</span>
+            </div>
+        </div>
+
+        <nav class="nav-center">
+            <button class="nav-item" [class.active]="activeTab() === 'team'" (click)="setTab('team')">🕒 Team Time
+                Logs</button>
+            <button class="nav-item" [class.active]="activeTab() === 'tasks'" (click)="setTab('tasks')">📋 Task
+                Management</button>
+            <button class="nav-item" [class.active]="activeTab() === 'analytics'" (click)="setTab('analytics')">📈 Team
+                Analytics</button>
+        </nav>
+
+        <div class="nav-right">
+            <div class="user-pill">
+                <div class="user-avatar">{{ user()?.name?.charAt(0) || 'U' }}</div>
+                <div class="user-details">
+                    <span class="u-name">{{ user()?.name || 'Manager' }}</span>
+                    <span class="u-dept">{{ user()?.email }}</span>
+                </div>
+            </div>
+            <button class="btn-logout" (click)="logout()">↪</button>
+        </div>
+    </header>
+
+    <div class="stats-row">
+        <div class="card stat-card">
+            <div class="card-header-row"><span class="label">Team Members</span><span class="icon-box sky">👥</span>
+            </div>
+            <p class="stat-number">{{ totalTeamMembers() }}</p>
+        </div>
+        <div class="card stat-card">
+            <div class="card-header-row"><span class="label">Active Tasks</span><span class="icon-box green">✅</span>
+            </div>
+            <p class="stat-number">{{ tasks().length }}</p>
+        </div>
+        <div class="card stat-card">
+            <div class="card-header-row"><span class="label">Team Hours</span><span class="icon-box purple">🕒</span>
+            </div>
+            <p class="stat-number">0.0</p>
+        </div>
+        <div class="card stat-card">
+            <div class="card-header-row"><span class="label">Completion</span><span class="icon-box orange">📈</span>
+            </div>
+            <p class="stat-number">20%</p>
+        </div>
+    </div>
+
+    <div class="card main-card" *ngIf="activeTab() === 'team'">
+        <div class="card-header-row">
+            <h2 class="section-title">Team Time Logs</h2>
+            <div class="filter-group">
+                <select class="form-control-inline">
+                    <option>All Members</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="employee-grid">
+            <div class="employee-summary-card" *ngFor="let member of teamMembers()">
+                <div class="emp-header">
+                    <div><strong>{{member.name}}</strong>
+                        <p class="sub-text">{{member.email}}</p>
+                    </div>
+                    <div class="avatar-sm">{{member.initials}}</div>
+                </div>
+                <div class="emp-stats">
+                    <div class="mini-stat"><span>Hours:</span> <strong>0.0</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Date</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="logs().length === 0">
+                    <td colspan="5" class="no-data">No time logs found</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card main-card" *ngIf="activeTab() === 'tasks'">
+        <div class="card-header-row">
+            <h2 class="section-title">Task Management</h2>
+            <button class="btn-primary" (click)="openModal()">+ Create Task</button>
+        </div>
+
+        <div class="task-container">
+            <div class="task-card" *ngFor="let task of tasks()">
+                <div class="task-main">
+                    <div class="task-icon">📋</div>
+                    <div class="task-details">
+                        <h3>{{ task.title }}</h3>
+                        <p>{{ task.description }}</p>
+                        <span class="task-assignment">Assigned to: <strong>{{ task.assignedTo }}</strong> • Est. {{
+                            task.estimatedHours }}h</span>
+                    </div>
+                </div>
+                <div class="task-status">
+                    <span class="status-badge" [ngClass]="task.status.toLowerCase().replace(' ', '-')">{{ task.status
+                        }}</span>
+                    <button class="btn-edit">✎</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showCreateModal()">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Create New Task</h3>
+            <button class="btn-close" (click)="closeModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Task Title</label>
+                <input type="text" name="title" [(ngModel)]="newTask.title" placeholder="What needs to be done?">
+                    placeholder="What needs to be done?">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea [(ngModel)]="newTask.description" placeholder="Add more details..."></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Assign Member</label>
+                    <select [(ngModel)]="newTask.assignedTo">
+                        <option value="">Select Member</option>
+                        <option *ngFor="let m of teamMembers()" [value]="m.name">{{ m.name }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Est. Hours</label>
+                    <input type="number" [(ngModel)]="newTask.estimatedHours">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" (click)="closeModal()">Cancel</button>
+            <button class="btn-save" (click)="createTask()">Create Task</button>
+        </div>
+    </div>
+</div>
